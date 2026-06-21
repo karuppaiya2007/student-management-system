@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Academix ERP | Integrated Student Management System</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- Chart.js for data visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="spinner"></div>
+    <p>Processing Request...</p>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Login Container -->
+  <div id="login-container" class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="logo-box">
+          <i data-lucide="graduation-cap" class="logo-icon"></i>
+        </div>
+        <h1>Academix ERP</h1>
+        <p>Integrated University Management Portal</p>
+      </div>
+      
+      <!-- Normal Login Form -->
+      <form id="login-form" class="login-form">
+        <div class="form-group">
+          <label for="login-username">Username</label>
+          <div class="input-wrapper">
+            <i data-lucide="user"></i>
+            <input type="text" id="login-username" placeholder="Enter username (e.g. admin)" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="label-row">
+            <label for="login-password">Password</label>
+            <a href="#" id="btn-forgot-password-link">Forgot Password?</a>
+          </div>
+          <div class="input-wrapper">
+            <i data-lucide="lock"></i>
+            <input type="password" id="login-password" placeholder="Enter password (e.g. admin123)" required>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+      </form>
+
+      <!-- Forgot Password Form -->
+      <form id="forgot-password-form" class="forgot-password-form hidden">
+        <p class="form-intro">Provide your username and registered email. We will generate a temporary recovery password.</p>
+        <div class="form-group">
+          <label for="forgot-username">Username</label>
+          <div class="input-wrapper">
+            <i data-lucide="user"></i>
+            <input type="text" id="forgot-username" placeholder="Enter your username" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="forgot-email">Registered Email</label>
+          <div class="input-wrapper">
+            <i data-lucide="mail"></i>
+            <input type="email" id="forgot-email" placeholder="Enter your registered email" required>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button type="button" id="btn-back-to-login" class="btn btn-secondary">Back to Login</button>
+          <button type="submit" class="btn btn-primary">Request Password</button>
+        </div>
+      </form>
+
+      <div class="login-footer">
+        <p>Demo Logins (Password: <strong>role123</strong>, e.g. admin123)</p>
+        <div class="demo-badges">
+          <span class="badge" onclick="document.getElementById('login-username').value='admin'; document.getElementById('login-password').value='admin123';">Admin</span>
+          <span class="badge" onclick="document.getElementById('login-username').value='faculty1'; document.getElementById('login-password').value='faculty123';">Faculty</span>
+          <span class="badge" onclick="document.getElementById('login-username').value='student1'; document.getElementById('login-password').value='student123';">Student</span>
+          <span class="badge" onclick="document.getElementById('login-username').value='parent1'; document.getElementById('login-password').value='parent123';">Parent</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recovery Password Modal -->
+  <div id="recovery-modal" class="modal hidden">
+    <div class="modal-content text-center">
+      <i data-lucide="shield-check" class="success-icon"></i>
+      <h2>Password Reset Success</h2>
+      <p>Your temporary login password is:</p>
+      <div class="temp-password-box">
+        <code id="temp-password-val"></code>
+      </div>
+      <p class="text-muted">Use this code to sign in, and make sure to change it in your profile.</p>
+      <button id="btn-close-recovery" class="btn btn-primary">Proceed to Login</button>
+    </div>
+  </div>
+
+  <!-- ERP Main Layout Container (Hidden until logged in) -->
+  <div id="app-container" class="app-container hidden">
+    
+    <!-- Sidebar Navigation -->
+    <aside id="app-sidebar" class="app-sidebar">
+      <div class="sidebar-header">
+        <i data-lucide="graduation-cap" class="sidebar-logo"></i>
+        <span class="sidebar-title">Academix ERP</span>
+      </div>
+
+      <!-- Navigation Links (Filled dynamically based on role) -->
+      <nav id="sidebar-nav" class="sidebar-nav">
+        <!-- Rendered by js/app.js -->
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-quick-profile">
+          <div class="user-avatar" id="sidebar-user-avatar">AD</div>
+          <div class="user-meta-info">
+            <span class="user-fullname" id="sidebar-user-name">Admin User</span>
+            <span class="user-role-tag" id="sidebar-user-role">Administrator</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Content Workspace -->
+    <div class="app-workspace">
+      
+      <!-- Top Navbar -->
+      <header class="app-header">
+        <div class="header-left">
+          <button id="btn-toggle-sidebar" class="btn-icon">
+            <i data-lucide="menu"></i>
+          </button>
+          <h2 id="current-view-title" class="current-view-title">Dashboard</h2>
+        </div>
+        <div class="header-right">
+          <!-- Notification Bell -->
+          <div class="notification-dropdown-wrapper">
+            <button id="btn-notifications-bell" class="btn-icon badge-holder">
+              <i data-lucide="bell"></i>
+              <span class="badge-dot hidden" id="bell-dot"></span>
+            </button>
+            <!-- Dropdown panel -->
+            <div id="notifications-panel" class="notifications-panel hidden">
+              <div class="panel-header">
+                <h3>Announcements</h3>
+                <button id="btn-clear-notif-dots" class="btn-link">Mark all read</button>
+              </div>
+              <div class="panel-list" id="notifications-list-container">
+                <!-- Notifications loaded here -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Theme Toggler -->
+          <button id="btn-toggle-theme" class="btn-icon" title="Toggle Theme">
+            <i data-lucide="moon" id="theme-icon"></i>
+          </button>
+
+          <!-- User Dropdown Menu -->
+          <button id="btn-user-profile" class="btn-icon profile-btn" title="Profile Details">
+            <i data-lucide="user"></i>
+          </button>
+
+          <button id="btn-logout" class="btn-icon btn-logout-icon" title="Log Out">
+            <i data-lucide="log-out"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Dynamic Content Panel -->
+      <main id="main-content" class="main-content">
+        <!-- Rendered by Views (dashboard, admin, faculty, student) -->
+      </main>
+    </div>
+  </div>
+
+  <!-- Global Modal Container for forms and details -->
+  <div id="global-modal" class="modal hidden">
+    <div class="modal-content" id="global-modal-content">
+      <!-- Injected Dynamically -->
+    </div>
+  </div>
+
+  <!-- Interactive Live API Log Logger -->
+  <div id="api-logger-console" class="api-logger-console minimized">
+    <div class="logger-header">
+      <div class="header-label">
+        <span class="pulse-dot"></span>
+        <i data-lucide="terminal" class="icon-sm"></i>
+        <span>Live ERP API Logger (Simulated Backend Logs)</span>
+      </div>
+      <div class="header-actions">
+        <button id="btn-clear-logs" class="btn-link-white" title="Clear logs">Clear</button>
+        <button id="btn-toggle-logs" class="btn-icon-white"><i data-lucide="chevron-up" id="logs-toggle-icon"></i></button>
+      </div>
+    </div>
+    <div class="logger-body" id="logger-logs-body">
+      <!-- Injected by API events -->
+      <div class="log-line system-line">[SYSTEM] Console listening. Logs of AJAX requests and local storage DB commits will output here.</div>
+    </div>
+  </div>
+
+  <!-- Core JavaScript Framework files -->
+  <script src="js/db.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/views/dashboard.js"></script>
+  <script src="js/views/admin.js"></script>
+  <script src="js/views/faculty.js"></script>
+  <script src="js/views/student.js"></script>
+  <script src="js/views/parent.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
